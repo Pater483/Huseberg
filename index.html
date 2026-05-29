@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sommarstugan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sand:    #f5f0e8;
+      --bark:    #3b2f1e;
+      --moss:    #4a6741;
+      --sky:     #6a9bb5;
+      --sun:     #d4924a;
+      --birch:   #c8b89a;
+      --fog:     #e8e2d8;
+      --white:   #fdfaf5;
+
+      --hlavni:  #4a6741;   /* Huvudhus  – mossgrön  */
+      --patrik:  #6a9bb5;   /* Patriks   – himmelsblå */
+      --topp:    #d4924a;   /* Topphuset – solbränd   */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand);
+      color: var(--bark);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      background: var(--bark);
+      color: var(--white);
+      padding: 2rem 2.5rem 1.6rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+    }
+    header h1 span {
+      display: block;
+      font-size: 0.55em;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--birch);
+      margin-bottom: 0.3em;
+    }
+    .nav-month {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .nav-month button {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: var(--white);
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .nav-month button:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+    #monthLabel {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    /* ── LEGEND ─────────────────────────────────────────── */
+    .legend {
+      display: flex;
+      gap: 1.4rem;
+      padding: 1rem 2.5rem;
+      background: var(--fog);
+      border-bottom: 1px solid var(--birch);
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ── CALENDAR GRID ──────────────────────────────────── */
+    main { padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .weekday {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--birch);
+      padding: 0.4rem 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      background: var(--white);
+      border-radius: 8px;
+      min-height: 90px;
+      padding: 6px 7px 5px;
+      position: relative;
+      transition: box-shadow 0.15s;
+      border: 1.5px solid transparent;
+    }
+    .day-cell:hover { box-shadow: 0 2px 12px rgba(59,47,30,0.10); border-color: var(--birch); }
+    .day-cell.empty { background: transparent; border: none; pointer-events: none; }
+    .day-cell.today { border-color: var(--bark); }
+
+    .day-num {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--bark);
+      opacity: 0.6;
+      line-height: 1;
+    }
+    .day-cell.today .day-num {
+      background: var(--bark);
+      color: var(--white);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 1;
+    }
+
+    .bookings-in-day {
+      margin-top: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .booking-chip {
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-size: 0.68rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      color: #fff;
+      max-width: 100%;
+    }
+    .booking-chip:hover { opacity: 0.85; transform: scale(1.02); }
+    .chip-hlavni  { background: var(--hlavni); }
+    .chip-patrik  { background: var(--patrik); }
+    .chip-topp    { background: var(--topp); }
+
+    /* ── MODAL ──────────────────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(59,47,30,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 2rem 2.2rem;
+      max-width: 420px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 8px 40px rgba(59,47,30,0.20);
+    }
+    .modal-house-badge {
+      display: inline-block;
+      border-radius: 5px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    #modal h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 0.2rem;
+    }
+    .modal-dates {
+      font-size: 0.85rem;
+      color: var(--birch);
+      margin-bottom: 1.2rem;
+      font-weight: 500;
+    }
+    .modal-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--birch);
+      min-width: 70px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--fog);
+      border: none;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bark);
+    }
+    .modal-close:hover { background: var(--birch); color: var(--white); }
+
+    /* ── EMPTY STATE ────────────────────────────────────── */
+    #empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--birch);
+      display: none;
+    }
+    #empty-state svg { opacity: 0.3; margin-bottom: 1rem; }
+    #empty-state p { font-size: 0.9rem; }
+
+    /* ── UPDATED ────────────────────────────────────────── */
+    .updated-tag {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--birch);
+      padding-bottom: 1.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 600px) {
+      header { flex-direction: column; align-items: flex-start; padding: 1.4rem 1rem 1rem; }
+      .legend { padding: 0.8rem 1rem; }
+      main { padding: 1rem 0.5rem 3rem; }
+      .day-cell { min-height: 64px; padding: 4px 4px 3px; border-radius: 6px; }
+      .booking-chip { font-size: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span>Familjen</span>Sommarstugan</h1>
+  <div class="nav-month">
+    <button id="prevBtn" aria-label="Föregående månad">&#8592;</button>
+    <div id="monthLabel"></div>
+    <button id="nextBtn" aria-label="Nästa månad">&#8594;</button>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:var(--hlavni)"></div>Huvudhus
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:var(--patrik)"></div>Patriks Hus
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:var(--topp)"></div>Topphuset
+  </div>
+</div>
+
+<main>
+  <div class="weekdays">
+    <div class="weekday">Mån</div>
+    <div class="weekday">Tis</div>
+    <div class="weekday">Ons</div>
+    <div class="weekday">Tor</div>
+    <div class="weekday">Fre</div>
+    <div class="weekday">Lör</div>
+    <div class="weekday">Sön</div>
+  </div>
+  <div class="calendar-grid" id="calGrid"></div>
+  <div id="empty-state">
+    <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    <p>Inga bokningar denna månad.</p>
+  </div>
+</main>
+
+<p class="updated-tag" id="updatedTag"></p>
+
+<!-- MODAL -->
+<div id="modal-overlay" role="dialog" aria-modal="true">
+  <div id="modal">
+    <button class="modal-close" id="modalClose" aria-label="Stäng">✕</button>
+    <div class="modal-house-badge" id="modalBadge"></div>
+    <h2 id="modalName"></h2>
+    <p class="modal-dates" id="modalDates"></p>
+    <div class="modal-row"><span class="modal-label">Antal</span><span id="modalCount"></span></div>
+    <div class="modal-row" id="modalCommentRow"><span class="modal-label">Kommentar</span><span id="modalComment"></span></div>
+  </div>
+</div>
+
+<script>
+  const HOUSE_KEY = {
+    'huvudhus':    { label: 'Huvudhus',   cls: 'chip-hlavni', color: '#4a6741' },
+    'patriks hus': { label: 'Patriks Hus', cls: 'chip-patrik', color: '#6a9bb5' },
+    'topphuset':   { label: 'Topphuset',  cls: 'chip-topp',   color: '#d4924a' },
+  };
+
+  const MONTHS_SV = ['Januari','Februari','Mars','April','Maj','Juni',
+                     'Juli','Augusti','September','Oktober','November','December'];
+
+  let bookings = [];
+  let currentYear, currentMonth;
+
+  async function loadData() {
+    try {
+      const r = await fetch('data.json?v=' + Date.now());
+      const d = await r.json();
+      bookings = d.bookings || [];
+      if (d.updated) {
+        document.getElementById('updatedTag').textContent =
+          'Senast uppdaterad: ' + d.updated;
+      }
+    } catch(e) {
+      bookings = [];
+    }
+  }
+
+  function houseInfo(raw) {
+    const key = (raw || '').toLowerCase().trim();
+    return HOUSE_KEY[key] || { label: raw, cls: 'chip-hlavni', color: '#4a6741' };
+  }
+
+  function parseDate(s) {
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+
+  function dateStr(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  function bookingsForDate(ds) {
+    return bookings.filter(b => {
+      const from = parseDate(b.from);
+      const to   = parseDate(b.to);
+      const cur  = parseDate(ds);
+      return cur >= from && cur <= to;
+    });
+  }
+
+  function formatDateRange(from, to) {
+    const f = parseDate(from), t = parseDate(to);
+    const fmt = d => d.getDate() + ' ' + MONTHS_SV[d.getMonth()].toLowerCase();
+    if (from === to) return fmt(f);
+    if (f.getMonth() === t.getMonth())
+      return f.getDate() + '–' + t.getDate() + ' ' + MONTHS_SV[f.getMonth()].toLowerCase();
+    return fmt(f) + ' – ' + fmt(t);
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    document.getElementById('monthLabel').textContent =
+      MONTHS_SV[currentMonth] + ' ' + currentYear;
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    // Monday-first: 0=Mon … 6=Sun
+    let startOffset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+    const today = dateStr(new Date());
+
+    // Empty cells before first day
+    for (let i = 0; i < startOffset; i++) {
+      const el = document.createElement('div');
+      el.className = 'day-cell empty';
+      grid.appendChild(el);
+    }
+
+    let hasAny = false;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = dateStr(new Date(currentYear, currentMonth, d));
+      const dayBookings = bookingsForDate(ds);
+      if (dayBookings.length) hasAny = true;
+
+      const cell = document.createElement('div');
+      cell.className = 'day-cell' + (ds === today ? ' today' : '');
+
+      const numEl = document.createElement('div');
+      numEl.className = 'day-num';
+      numEl.textContent = d;
+      if (ds === today) {
+        const inner = document.createElement('div');
+        inner.className = 'day-num';
+        inner.style.cssText = 'background:var(--bark);color:var(--white);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;';
+        inner.textContent = d;
+        cell.appendChild(inner);
+      } else {
+        cell.appendChild(numEl);
+      }
+
+      if (dayBookings.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'bookings-in-day';
+        // Deduplicate: one chip per booking per day (show only on first day)
+        const shown = new Set();
+        dayBookings.forEach(b => {
+          const key = b.from + b.to + b.name + b.house;
+          if (shown.has(key) && ds !== b.from) return; // show every day
+          shown.add(key);
+          const hi = houseInfo(b.house);
+          const chip = document.createElement('div');
+          chip.className = 'booking-chip ' + hi.cls;
+          chip.textContent = b.name || '—';
+          chip.title = hi.label + ': ' + b.name;
+          chip.addEventListener('click', () => openModal(b));
+          wrap.appendChild(chip);
+        });
+        cell.appendChild(wrap);
+      }
+
+      grid.appendChild(cell);
+    }
+
+    document.getElementById('empty-state').style.display =
+      hasAny ? 'none' : 'block';
+  }
+
+  function openModal(b) {
+    const hi = houseInfo(b.house);
+    document.getElementById('modalBadge').textContent = hi.label;
+    document.getElementById('modalBadge').style.background = hi.color;
+    document.getElementById('modalName').textContent = b.name || '—';
+    document.getElementById('modalDates').textContent = formatDateRange(b.from, b.to);
+    document.getElementById('modalCount').textContent =
+      b.antal ? b.antal + ' person' + (b.antal > 1 ? 'er' : '') : '—';
+    const commentRow = document.getElementById('modalCommentRow');
+    if (b.kommentar) {
+      document.getElementById('modalComment').textContent = b.kommentar;
+      commentRow.style.display = 'flex';
+    } else {
+      commentRow.style.display = 'none';
+    }
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  document.getElementById('modalClose').addEventListener('click', () => {
+    document.getElementById('modal-overlay').classList.remove('open');
+  });
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay'))
+      document.getElementById('modal-overlay').classList.remove('open');
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    currentMonth--;
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar();
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    currentMonth++;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    renderCalendar();
+  });
+
+  (async () => {
+    const now = new Date();
+    currentYear  = now.getFullYear();
+    currentMonth = now.getMonth();
+    await loadData();
+    renderCalendar();
+  })();
+</script>
+</body>
+</html>

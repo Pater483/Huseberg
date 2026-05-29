@@ -1,0 +1,51 @@
+name: Bygg och deploya sommarstugan
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bookings.xlsx'
+      - 'convert.py'
+      - 'index.html'
+      - '.github/workflows/deploy.yml'
+
+  workflow_dispatch:   # Gör det möjligt att trigga manuellt
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checka ut kod
+        uses: actions/checkout@v4
+
+      - name: Sätt upp Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installera beroenden
+        run: pip install openpyxl
+
+      - name: Konvertera Excel → JSON
+        run: python convert.py
+
+      - name: Commita data.json om den ändrats
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --staged --quiet || git commit -m "Auto: uppdatera data.json från bookings.xlsx"
+          git push
+
+      - name: Deploya till GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          exclude_assets: '.github,convert.py,bookings.xlsx,*.md'
